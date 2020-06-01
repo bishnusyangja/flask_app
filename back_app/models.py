@@ -30,7 +30,6 @@ class User(db.Model):
         return verify_password(self.password, password)
 
 
-
 class UserToken(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String(50), unique=True)
@@ -43,4 +42,9 @@ class UserToken(db.Model):
 
 
 class Report(db.Model):
-    item = ''
+    id = db.Column(db.Integer, primary_key=True)
+    keyword = db.Column(db.String(50))
+    result = db.Column(db.Integer)
+    user_id = db.Column(db.Integer, ForeignKey(User.id))
+
+    user = relationship('User', foreign_keys='UserToken.user_id')

@@ -102,7 +102,6 @@ class BaseView:
         else:
             data = self.request.json
             errors = self.validate_fields(data)
-            print(errors)
             if errors:
                 response = make_response(jsonify(errors), 400)
             else:
