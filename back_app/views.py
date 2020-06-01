@@ -18,6 +18,9 @@ class BaseView:
     def check_permission(self):
         return True, {}
 
+    def get_count(self):
+        return 0
+
     def get_queryset(self):
         return []
 
@@ -62,7 +65,7 @@ class BaseView:
                     field) for field in self.field_items} for item in qs])
         data['page_size'] = self.page_size
         data['page'] = self.page
-        data['count'] = self.count
+        data['count'] = self.get_count()
         return data
 
     def get_query_limit(self):

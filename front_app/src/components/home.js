@@ -87,7 +87,7 @@ import Request from '../api'
       {
         title: 'No of Results',
         dataIndex: 'results',
-        key: 'results',
+        key: 'result',
       },
    ]
 
