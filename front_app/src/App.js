@@ -24,7 +24,7 @@ function App() {
         return (
           <Row>
               <Col span={10} > <LoginForm setIsLoggedin={setIsLoggedin} /> </Col>
-              <Col span={14} > <RegisterForm /> </Col>
+              <Col span={10} > <RegisterForm /> </Col>
           </Row>
     );
 

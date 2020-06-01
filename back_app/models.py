@@ -9,6 +9,7 @@ from settings import DB_NAME, DB_PATH
 
 app = get_core_app()
 app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}{DB_NAME}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
@@ -45,4 +46,4 @@ class Report(db.Model):
     result = db.Column(db.Integer)
     user_id = db.Column(db.Integer, ForeignKey(User.id))
 
-    user = relationship('User', foreign_keys='UserToken.user_id')
+    user = relationship('User', foreign_keys='Report.user_id')
