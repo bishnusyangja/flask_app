@@ -52,7 +52,6 @@ class ApiAuthView(BaseView):
         errors = {}
         username = data.get('username')
         self.user = self.get_user_obj(username)
-        print(self.user, ' sefl.user')
         if self.user is None:
             errors['user'] = 'Username or password doesnot match'
         else:

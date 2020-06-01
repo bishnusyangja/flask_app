@@ -1,42 +1,44 @@
 import React from 'react';
 import {useState, useEffect} from 'react';
-import { Button, Radio, Table, Pagination } from 'antd';
+import { Button, Radio, Table, Pagination, notification, Upload, Form} from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
 import Request from '../api'
 
  const HomePage = () => {
 
     const pagination = {pageSize: 10, page: 1};
 
-    useEffect(() => {
-        console.log("welcome");
-//        getScoreBoard(1, pagination.pageSize);
-      }, []);
-
-    const defaultAnswer = (data) => {
-        let ans_obj = {}
-        for (let i in data){
-            ans_obj[data[i].key_id] = '';
-        }
-        return ans_obj;
-    }
-
     const [state, setState] = useState({
         data:null, start: false, count: 0
     });
 
-    const [is_submitted, setSubmitted] = useState(false);
+    const [file_data, setFile] = useState({file: null});
 
-    const [scoreBoard, setScoreBoard] = useState({data: null, count: 0});
+    useEffect(() => {
+        console.log("welcome");
+        getReport(pagination.page, pagination.pageSize);
+      }, []);
 
-    const [score, setScore] = useState(0);
+    const notify_success = () => {
+      notification.open({
+        message: 'Upload Successful !!',
+        description:
+          'The file is successfully uploaded. Report will display after few minutes.',
+        onClick: () => {
+          console.log('Notification Clicked!');
+        },
+      });
+    };
 
-    const [ans, setAnswer] = useState({});
+    const fileUploadChange = (file, fileList) => {
+        setFile({file: file.file});
+    }
+
 
     const getReport = (page, pageSize) => {
         Request().get('/report/', {page: page, page_size: pageSize})
           .then((response) => {
             setState({data: response.data.results, count: response.data.count, start: true});
-            setAnswer(defaultAnswer(response.data));
           })
           .catch((error) => {
             console.log("error at report", error)
@@ -47,12 +49,12 @@ import Request from '../api'
     }
 
     const uploadFile = () => {
-        let quiz_id = state.data[0].quiz_id;
-        Request().post('/upload/')
+        let formData = new FormData();
+        console.log(file_data.file);
+        formData.append("file", file_data.file);
+        Request().post('/upload-file/', formData)
           .then((response) => {
-            setScore(response.data.score);
-            setSubmitted(true);
-            getScoreBoard(1, pagination.pageSize);
+            notify_success();
           })
           .catch((error) => {
             console.log("error in quiz submission")
@@ -62,22 +64,6 @@ import Request from '../api'
         });
     }
 
-    const startQuiz = () => {
-        getQuiz(1, pagination.pageSize);
-    }
-
-    const getScoreBoard = (page, pageSize) => {
-        Request().get('/score/list/', {page: page, page_size: pageSize})
-          .then((response) => {
-            setScoreBoard({data: response.data.results, count: response.data.count});
-          })
-          .catch((error) => {
-            console.log("error at quiz", error)
-          })
-          .finally(() => {
-            console.log('finally block at quiz')
-        });
-    }
 
     const columns = [
       {
@@ -105,66 +91,36 @@ import Request from '../api'
       },
    ]
 
-    const onOptionChange = (key_id, value) => {
-        ans[key_id] = value
-        setAnswer(ans);
-    }
-
-    const radioStyle = {
-      display: 'block',
-      height: '30px',
-      lineHeight: '30px',
-    };
-
-
-    const jumpToScoreBoard = (e) => {
-        e.preventDefault();
-        setSubmitted(true);
-        getScoreBoard(1, pagination.pageSize);
-
-    }
-
-    const scorePage = (obj, index) => {
-        return <>
-            <div style={{marginTop: '20px'}}><h3>{index+1} {obj.user_name} {obj.user_username} {obj.score} </h3></div>
-        </>
-    }
-
     const onPageChange = (page, pageSize) => {
         console.log("on page change");
-        getScoreBoard(page, pagination.pageSize);
+        getReport(page, pageSize);
     }
 
-    if (is_submitted && scoreBoard.data){
-        return (
-            <div style={{align: 'center', margin: '100px'}}>
-                <h2> Your Score : {score}</h2>
-                <h2> Top Score List</h2>
-                    {scoreBoard.data && <Table dataSource={scoreBoard.data} columns={columns} pagination={false}/>}
-                    <Pagination defaultCurrent={1}
-                              pageSize={pagination.pageSize}
-                              total={scoreBoard.count}
-                              onChange={onPageChange}/>
-            </div>
-        );
+    return (<>
+        <div style={{align: 'center', margin: '100px'}}>
+            <Form onFinish={uploadFile}>
+                <Form.Item> <Upload  beforeUpload={() => false} onChange={fileUploadChange}>
+                    <Button>
+                      <UploadOutlined
+                        /> Select File
+                    </Button>
+                  </Upload>
+                </Form.Item>
+                <Form.Item>  <Button type="primary" htmlType="submit">  Upload </Button> </Form.Item>
+            </Form>
+        </div>
 
-    } else if (state.start && state.data){
-        return (
-            <div style={{align: 'center', margin: '100px'}}>
-                <h2> Quiz Questions</h2>
-                    {state.data.map((ques, index) => (questionPage(ques, index))) }
-               <br/>
-               <Button type="primary" onClick={submitAnswer}>Submit Answer</Button>
-            </div>
-        );
-    } else
-        return (
-            <div style={{align: 'center', margin: '100px'}}>
-                <h2>After you click the button you can not go back.</h2>
-                <Button type="primary" onClick={startQuiz}>Upload File</Button>
-                <Button style={{marginLeft: '20px'}} type="primary" onClick={jumpToScoreBoard}>View Report</Button>
-            </div>
-        );
+        <div style={{align: 'center', margin: '100px'}}>
+            <h2> Search Report</h2>
+                {state.data && <Table dataSource={state.data} columns={columns} pagination={false}/>}
+                <Pagination defaultCurrent={1}
+                          pageSize={pagination.pageSize}
+                          total={state.count}
+                          onChange={onPageChange}/>
+        </div>
+    </>);
+
+
   }
 
 export default HomePage
